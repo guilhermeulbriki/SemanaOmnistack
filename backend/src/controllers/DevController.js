@@ -29,5 +29,10 @@ module.exports = {
       });
     }
     return response.json(dev);
+  },
+
+  async destroy (request, response) {
+    await Dev.findOneAndRemove(request.query.git_user);
+    return response.json({ message: "removed" });
   }
 };
