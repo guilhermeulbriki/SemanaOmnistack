@@ -7,6 +7,7 @@ const app = express();
 
 mongoose.connect('mongodb+srv://admin:admin@cluster0-pmqdy.gcp.mongodb.net/test?retryWrites=true&w=majority', {
   useNewUrlParser: true,
+  useUnifiedTopology: true
 });
 
 app.use(cors());
