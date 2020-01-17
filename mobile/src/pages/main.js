@@ -43,6 +43,7 @@ function Main({ navigation }) {
   }
 
   function regionChange(region) {
+    console.log(region)
     setCurrentRegion(region);
   }
 
