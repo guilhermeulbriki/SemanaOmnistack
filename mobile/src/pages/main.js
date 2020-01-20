@@ -4,6 +4,7 @@ import MapView, { Marker, Callout } from 'react-native-maps';
 import { requestPermissionsAsync, getCurrentPositionAsync } from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
 import api from '../services/api';
+import { connect, disconnect, subscribeToNewDevs } from '../services/socket';
 
 function Main({ navigation }) {
   const [devs, setDevs] = useState([]);
@@ -30,6 +31,19 @@ function Main({ navigation }) {
     loadInitialPosition();
   }, []);
 
+  useEffect(() => {
+    subscribeToNewDevs(dev => setDevs([...devs, dev]));
+  }, [devs]);
+  function setWebSocket() {
+    disconnect();
+    const { latitude, longitude } = currentRegion;
+    connect(
+      latitude,
+      longitude,
+      techs
+    );
+  }
+
   async function loadDevs() {
     const { latitude, longitude } = currentRegion;
     const response = await api.get('/search', {
@@ -40,10 +54,10 @@ function Main({ navigation }) {
       }
     });
     setDevs(response.data.devs);
+    setWebSocket();
   }
 
   function regionChange(region) {
-    console.log(region)
     setCurrentRegion(region);
   }
 
@@ -59,31 +73,31 @@ function Main({ navigation }) {
             longitude: dev.location.coordinates[0],
             latitude: dev.location.coordinates[1]
           }}>
-          <Image
-            style={styles.avatar}
-            source={{ uri: dev.avatar_url }} />
-          <Callout onPress={() => {
-            navigation.navigate('Profile', { git_user: dev.git_user })
-          }}>
-            <View style={styles.callout}>
-              <Text style={styles.devName}>{dev.name}</Text>
-              <Text style={styles.devBio}>{dev.bio}</Text>
-              <Text style={styles.devTechs}>{dev.techs.join(', ')}</Text>
-            </View>
-          </Callout>
-        </Marker>
+            <Image
+              style={styles.avatar}
+              source={{ uri: dev.avatar_url }} />
+            <Callout onPress={() => {
+              navigation.navigate('Profile', { git_user: dev.git_user })
+            }}>
+              <View style={styles.callout}>
+                <Text style={styles.devName}>{dev.name}</Text>
+                <Text style={styles.devBio}>{dev.bio}</Text>
+                <Text style={styles.devTechs}>{dev.techs.join(', ')}</Text>
+              </View>
+            </Callout>
+          </Marker>
         ))}
       </MapView>
       <View style={styles.form}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar devs por tech..."
-            placeholderTextColor="#999"
-            autoCapitalize="words"
-            autoCorrect={false}
-            value={techs}
-            onChangeText={text => setTechs(text)}
-          />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar devs por tech..."
+          placeholderTextColor="#999"
+          autoCapitalize="words"
+          autoCorrect={false}
+          value={techs}
+          onChangeText={text => setTechs(text)}
+        />
         <TouchableOpacity onPress={loadDevs} style={styles.loadButton}>
           <MaterialIcons name="my-location" size={20} color="#fff" />
         </TouchableOpacity>
@@ -126,20 +140,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   searchInput: {
-   flex: 1,
-   height: 50,
-   backgroundColor: '#fff',
-   color: '#333',
-   borderRadius: 25,
-   paddingHorizontal: 20,
-   fontSize: 16,
-   shadowColor: '#000',
-   shadowOpacity: 0.2,
-   shadowOffset: {
-     width: 4,
-     height: 4,
-   },
-   elevation: 2,
+    flex: 1,
+    height: 50,
+    backgroundColor: '#fff',
+    color: '#333',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    fontSize: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: {
+      width: 4,
+      height: 4,
+    },
+    elevation: 2,
   },
   loadButton: {
     width: 50,
